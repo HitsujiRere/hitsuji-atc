@@ -1,5 +1,8 @@
 use clap::Parser;
-use std::path::PathBuf;
+use std::{
+    path::PathBuf,
+    process::{ExitCode, Termination},
+};
 
 mod compiler;
 
@@ -16,13 +19,17 @@ struct Cli {
     debug: bool,
 }
 
-fn main() -> Result<(), ()> {
+fn main() -> impl Termination {
     let cli = Cli::parse();
 
     let code_path = cli.file;
     let is_debug = cli.debug;
 
-    let _exec_path = compile(&code_path, is_debug);
+    let exec_path = compile(&code_path, is_debug);
 
-    Ok(())
+    if exec_path.is_err() {
+        return ExitCode::FAILURE;
+    }
+
+    ExitCode::SUCCESS
 }

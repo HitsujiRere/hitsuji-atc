@@ -21,17 +21,8 @@ pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, ()> {
         return Err(());
     }
 
-    let file_stem = code_path.file_stem().unwrap();
-    let file_parent = code_path.parent().unwrap_or(Path::new("."));
-
     // 実行ファイルパス
-    let exec_path = if is_debug {
-        let mut new_file_name = file_stem.to_os_string();
-        new_file_name.push("-dev");
-        file_parent.join(new_file_name)
-    } else {
-        file_parent.join(file_stem)
-    };
+    let exec_path = get_exec_path(code_path, is_debug);
 
     let bar = ProgressBar::new_spinner().with_message(format!(
         "コンパイル中: {} -> {}",
@@ -63,5 +54,18 @@ pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, ()> {
             println!("コンパイルに失敗しました: {}", err);
             Err(())
         }
+    }
+}
+
+fn get_exec_path(code_path: &Path, is_debug: bool) -> PathBuf {
+    let file_stem = code_path.file_stem().unwrap();
+    let file_parent = code_path.parent().unwrap_or(Path::new("."));
+
+    if is_debug {
+        let mut new_file_name = file_stem.to_os_string();
+        new_file_name.push("-dev");
+        file_parent.join(new_file_name)
+    } else {
+        file_parent.join(file_stem)
     }
 }
