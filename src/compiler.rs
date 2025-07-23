@@ -82,8 +82,5 @@ fn should_update(code_path: &Path, exec_path: &Path) -> bool {
     let code_modified = code_path.metadata().unwrap().modified().unwrap();
     let exec_modified = exec_path.metadata().unwrap().modified().unwrap();
 
-    println!("{:?}", code_modified);
-    println!("{:?}", exec_modified);
-
     code_modified > exec_modified
 }
