@@ -19,14 +19,10 @@ struct Cli {
 fn main() -> Result<(), ()> {
     let cli = Cli::parse();
 
-    // コードファイルパス
     let code_path = cli.file;
     let is_debug = cli.debug;
 
-    let exec_path = compile(&code_path, is_debug);
-    if let Err(err) = exec_path {
-        println!("{}", err);
-    }
+    let _exec_path = compile(&code_path, is_debug);
 
     Ok(())
 }

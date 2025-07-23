@@ -1,23 +1,24 @@
+use indicatif::ProgressBar;
 use std::{
     path::{Path, PathBuf},
     process::Command,
+    time::Duration,
 };
 
-pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, String> {
+pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, ()> {
     // code_path: コンパイルするC++ファイルパス
     // is_debug: デバッグコンパイルするか
 
     if !code_path.exists() {
-        return Err(format!(
-            "指定されたファイルが存在しません: {}",
-            code_path.display()
-        ));
+        println!("指定されたファイルが存在しません: {}", code_path.display());
+        return Err(());
     }
     if !code_path.is_file() {
-        return Err(format!(
+        println!(
             "指定されたパスはファイルではありません: {}",
             code_path.display()
-        ));
+        );
+        return Err(());
     }
 
     let file_stem = code_path.file_stem().unwrap();
@@ -32,13 +33,35 @@ pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, String> {
         file_parent.join(file_stem)
     };
 
-    let compiler = "g++";
-    let _status = Command::new(compiler)
-        .arg(code_path)
-        .arg("-o")
-        .arg(&exec_path)
-        .status()
-        .map_err(|err| format!("コンパイルに失敗しました: {}", err))?;
+    let bar = ProgressBar::new_spinner().with_message(format!(
+        "コンパイル中: {} -> {}",
+        code_path.display(),
+        exec_path.display()
+    ));
+    bar.enable_steady_tick(Duration::from_millis(100));
 
-    Ok(exec_path)
+    let output = Command::new("g++")
+        .arg(code_path)
+        .args([Path::new("-o"), &exec_path])
+        .arg("-fdiagnostics-color=always")
+        .output();
+
+    bar.finish();
+
+    match output {
+        Ok(output) => {
+            if output.status.success() {
+                Ok(exec_path)
+            } else {
+                let stderr = String::from_utf8(output.stderr).unwrap();
+                println!("コンパイルに失敗しました:");
+                println!("{}", stderr);
+                Err(())
+            }
+        }
+        Err(err) => {
+            println!("コンパイルに失敗しました: {}", err);
+            Err(())
+        }
+    }
 }
