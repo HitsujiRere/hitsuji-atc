@@ -42,25 +42,18 @@ pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, ()> {
         .arg(code_path)
         .args([Path::new("-o"), &exec_path])
         .arg("-fdiagnostics-color=always")
-        .output();
+        .output()
+        .map_err(|err| println!("コンパイルに失敗しました: {err}"))?;
 
     bar.finish();
 
-    match output {
-        Ok(output) => {
-            if output.status.success() {
-                Ok(exec_path)
-            } else {
-                let stderr = String::from_utf8(output.stderr).unwrap();
-                println!("コンパイルに失敗しました:");
-                println!("{stderr}");
-                Err(())
-            }
-        }
-        Err(err) => {
-            println!("コンパイルに失敗しました: {err}");
-            Err(())
-        }
+    if output.status.success() {
+        Ok(exec_path)
+    } else {
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        println!("コンパイルに失敗しました:");
+        println!("{stderr}");
+        Err(())
     }
 }
 
