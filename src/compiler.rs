@@ -3,8 +3,9 @@ use std::{
     process::Command,
 };
 
-pub fn compile(code_path: &Path) -> Result<PathBuf, String> {
+pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, String> {
     // code_path: コンパイルするC++ファイルパス
+    // is_debug: デバッグコンパイルするか
 
     if !code_path.exists() {
         return Err(format!(
@@ -23,7 +24,13 @@ pub fn compile(code_path: &Path) -> Result<PathBuf, String> {
     let file_parent = code_path.parent().unwrap_or(Path::new("."));
 
     // 実行ファイルパス
-    let exec_path = file_parent.join(file_stem);
+    let exec_path = if is_debug {
+        let mut new_file_name = file_stem.to_os_string();
+        new_file_name.push("-dev");
+        file_parent.join(new_file_name)
+    } else {
+        file_parent.join(file_stem)
+    };
 
     let compiler = "g++";
     let _status = Command::new(compiler)

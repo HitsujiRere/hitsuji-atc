@@ -1,5 +1,5 @@
 use clap::Parser;
-use std::{panic, path::PathBuf};
+use std::path::PathBuf;
 
 mod compiler;
 
@@ -21,8 +21,9 @@ fn main() -> Result<(), ()> {
 
     // コードファイルパス
     let code_path = cli.file;
+    let is_debug = cli.debug;
 
-    let exec_path = compile(&code_path);
+    let exec_path = compile(&code_path, is_debug);
     if let Err(err) = exec_path {
         println!("{}", err);
     }
