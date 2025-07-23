@@ -1,5 +1,6 @@
 use indicatif::ProgressBar;
 use std::{
+    fs::create_dir,
     path::{Path, PathBuf},
     process::Command,
     time::Duration,
@@ -35,6 +36,8 @@ pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, ()> {
     ));
     bar.enable_steady_tick(Duration::from_millis(100));
 
+    _ = create_dir(exec_path.parent().unwrap());
+
     let output = Command::new("g++")
         .arg(code_path)
         .args([Path::new("-o"), &exec_path])
@@ -50,12 +53,12 @@ pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, ()> {
             } else {
                 let stderr = String::from_utf8(output.stderr).unwrap();
                 println!("コンパイルに失敗しました:");
-                println!("{}", stderr);
+                println!("{stderr}");
                 Err(())
             }
         }
         Err(err) => {
-            println!("コンパイルに失敗しました: {}", err);
+            println!("コンパイルに失敗しました: {err}");
             Err(())
         }
     }
@@ -68,9 +71,9 @@ fn get_exec_path(code_path: &Path, is_debug: bool) -> PathBuf {
     if is_debug {
         let mut new_file_name = file_stem.to_os_string();
         new_file_name.push("-dev");
-        file_parent.join(new_file_name)
+        file_parent.join("bin").join(new_file_name)
     } else {
-        file_parent.join(file_stem)
+        file_parent.join("bin").join(file_stem)
     }
 }
 
