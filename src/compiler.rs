@@ -24,6 +24,10 @@ pub fn compile(code_path: &Path, is_debug: bool) -> Result<PathBuf, ()> {
     // 実行ファイルパス
     let exec_path = get_exec_path(code_path, is_debug);
 
+    if !should_update(code_path, &exec_path) {
+        return Ok(exec_path);
+    }
+
     let bar = ProgressBar::new_spinner().with_message(format!(
         "コンパイル中: {} -> {}",
         code_path.display(),
@@ -68,4 +72,18 @@ fn get_exec_path(code_path: &Path, is_debug: bool) -> PathBuf {
     } else {
         file_parent.join(file_stem)
     }
+}
+
+fn should_update(code_path: &Path, exec_path: &Path) -> bool {
+    if !code_path.exists() || !exec_path.exists() {
+        return true;
+    }
+
+    let code_modified = code_path.metadata().unwrap().modified().unwrap();
+    let exec_modified = exec_path.metadata().unwrap().modified().unwrap();
+
+    println!("{:?}", code_modified);
+    println!("{:?}", exec_modified);
+
+    code_modified > exec_modified
 }
