@@ -2,4 +2,7 @@
 name = "hitsuji-atc"
 version = "0.1.0"
 edition = "2024"
-description = "Development tool for competitive programming"
+description = "C++ tool for competitive programming"
+
+[dependencies]
+clap = { version = "4.5.41", features = ["derive"] }
